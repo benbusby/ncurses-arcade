@@ -4,11 +4,10 @@ var scl = 15;
 
 // ASCII Draw Codes
 const VOID = -1;
-const SPACE = 0;
-const EARTH = 1;
-const WATER = 2;
+const STAR = 0;
+const NEIL = 1;
 const MOON = 3;
-const OBSTACLE = 4;
+const OBST = 4;
 
 // Movement Keycodes
 const keyState = {};
@@ -25,6 +24,7 @@ var jumpUp = 0;
 var resetJump = 0;
 var gameLoopInterval;
 var renderInterval;
+var canJump = true;
 
 var playerBase = 0;
 
@@ -37,8 +37,9 @@ function startMovement() {
         astronaut.posX -= (keyState[MOVE_LEFT] && astronaut.posX > 0) ? 1 : 0;
     }
 
-    if (keyState[MOVE_UP] && astronaut.posY == playerBase) {
+    if (keyState[MOVE_UP] && astronaut.posY == playerBase && canJump) {
         jumpUp = 1;
+        canJump = false;
     }
 }
 
@@ -46,6 +47,30 @@ function gameLoop() {
     gameLoopInterval = setInterval(startMovement, 50);
 }
 
+function shiftBackground() {
+    for (var x = 1; x <= map.x; x++) {
+        for (var y = 0; y <= map.y - 10; y++) {
+            if (map.map[[x, y]] == OBST) {
+                continue;
+            }
+
+            if (x == map.x) {
+                if (Math.random() > 0.9) {
+                    map.map[[x, y]] = STAR;
+                    initialMap[[x, y]] = STAR;
+                } else {
+                    map.map[[x, y]] = VOID;
+                    initialMap[[x, y]] = VOID;
+                }
+            } else if (map.map[[x + 1, y]] <= STAR && initialMap[[x + 1, y]] <= STAR) {
+                map.map[[x, y]] = map.map[[x + 1, y]];
+                initialMap[[x, y]] = initialMap[[x + 1, y]];
+            }
+        }
+    }
+
+    setTimeout(shiftBackground, 150);
+}
 
 // Keyboard controls
 document.onkeydown = function (event) {
@@ -53,11 +78,15 @@ document.onkeydown = function (event) {
         init();
         return;
     }
+
     keyState[event.keyCode || event.which] = true;
 }
 
 document.onkeyup = function (event) {
     keyState[event.keyCode || event.which] = false;
+    if (event.keyCode == MOVE_UP) {
+        canJump = true;
+    }
 }
 
 var initialMap = [[]];
@@ -67,18 +96,21 @@ var map = {
     map: [[]],
 
     initMap: function() {
-        console.log(map.x + ", " + map.y);
         for (var x = 0; x <= map.x; x++) {
             for (var y = 0; y <= map.y; y++) {
                 if (y > map.y - 2) {
-                    map.map[[x, y]] = OBSTACLE;
-                    initialMap[[x, y]] = OBSTACLE;
+                    map.map[[x, y]] = MOON;
+                    initialMap[[x, y]] = MOON;
+                    continue;
+                }
+
+                if (y > map.y - 10) {
                     continue;
                 }
 
                 if (Math.random() > 0.9) {
-                    map.map[[x, y]] = SPACE;
-                    initialMap[[x, y]] = SPACE;
+                    map.map[[x, y]] = STAR;
+                    initialMap[[x, y]] = STAR;
                 } else {
                     map.map[[x, y]] = VOID;
                     initialMap[[x, y]] = VOID;
@@ -101,18 +133,18 @@ var map = {
 
         astronaut.posY = astronaut.posY - jumpUp + resetJump;
 
-        if (map.map[[playerX, playerY]] == OBSTACLE) {
+        if (map.map[[playerX, playerY]] == OBST) {
             gameOver = 1;
         }
 
-        map.map[[25, 47]] = OBSTACLE;
+        map.map[[25, 47]] = MOON;
         if (jumpUp || resetJump) {
             map.map[[playerX, playerY]] = initialMap[[playerX, playerY]];
         }
 
-        map.map[[astronaut.posX, astronaut.posY]] = EARTH;
+        map.map[[astronaut.posX, astronaut.posY]] = NEIL;
 
-        cc.font = "15px Arial";
+        cc.font = "15px Lucida Console, Monaco, monospace";
         for (var x = 0; x <= map.x; x++) {
             for (var y = 0; y <= map.y; y++) {
                 switch (map.map[[x, y]]) {
@@ -120,17 +152,27 @@ var map = {
                         cc.fillStyle = gameOver ? "red" : "#000000";
                         cc.fillText(' ', x*scl + 5, y*scl + 10);
                         break;
-                    case OBSTACLE:
+                    case MOON:
                         cc.fillStyle = gameOver ? "red" : "#444444"
                         cc.fillText('#', x*scl + 5, y*scl + 10);
                         break;
-                    case SPACE:
+                    case STAR:
                         cc.fillStyle = gameOver ? "red" : "#aaaaaa";
-                        cc.fillText('.', x*scl + 5, y*scl + 10);
+                        cc.fillText(Math.random() > 0.9 ? '*' : '.', x*scl + 5, y*scl + 10);
                         break;
-                    case EARTH:
+                    case NEIL:
                         cc.fillStyle = gameOver ? "red" : "white";
                         cc.fillText('@', x*scl + 5, y*scl + 10);
+                        break;
+                    case OBST:
+                        if (gameOver) {
+                            map.map[[x, y]] = VOID;
+                            break;
+                        }
+                        cc.fillStyle = "red";
+                        cc.fillText('n', x*scl + 5, y*scl + 10);
+                        map.map[[x - 1, y]] = map.map[[x, y]];
+                        map.map[[x, y]] = initialMap[[x, y]];
                         break;
                 }
             }
@@ -155,7 +197,9 @@ function init() {
     map.initMap();
     update();
     gameLoop();
+    shiftBackground();
     renderInterval = setInterval(update, 50);
+    addObstacle();
 }
 
 function update() {
@@ -175,5 +219,9 @@ function render() {
 }
 
 function addObstacle() {
+    for (var y = map.y - 4; y <= map.y - 2; y++) {
+        map.map[[map.x, y]] = OBST;
+    }
 
+    setTimeout(addObstacle, Math.random() * 2000);
 }
