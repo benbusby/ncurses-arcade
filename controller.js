@@ -8,6 +8,7 @@ const STAR = 0;
 const NEIL = 1;
 const MOON = 3;
 const OBST = 4;
+const EARTH = -2;
 
 // Movement Keycodes
 const keyState = {};
@@ -25,6 +26,8 @@ var resetJump = 0;
 var gameLoopInterval;
 var renderInterval;
 var canJump = true;
+var jumpReturn = false;
+var seenEarth = false;
 
 var playerBase = 0;
 
@@ -32,6 +35,9 @@ function startMovement() {
     if (keyState[MOVE_RIGHT] || keyState[MOVE_LEFT]) {
         var origX = astronaut.posX;
         var origY = astronaut.posY;
+        if (map.map[[origX, origY]] == OBST) {
+            return;
+        }
         map.map[[origX, origY]] = initialMap[[origX, origY]];
         astronaut.posX += (keyState[MOVE_RIGHT] && astronaut.posX < map.x) ? 1 : 0;
         astronaut.posX -= (keyState[MOVE_LEFT] && astronaut.posX > 0) ? 1 : 0;
@@ -48,14 +54,22 @@ function gameLoop() {
 }
 
 function shiftBackground() {
-    for (var x = 1; x <= map.x; x++) {
-        for (var y = 0; y <= map.y - 10; y++) {
+    for (var x = 0; x <= map.x; x++) {
+        for (var y = 0; y <= map.y - 5; y++) {
             if (map.map[[x, y]] == OBST) {
                 continue;
             }
 
+            if (map.map[[x, y]] == NEIL) {
+                map.map[[x - 1, y]] = initialMap[[x, y]];
+                initialMap[[x, y]] = map.map[[x, y]];
+            }
+
             if (x == map.x) {
-                if (Math.random() > 0.9) {
+                if (!seenEarth && Math.random() > 0.99 && y < map.y - 10) {
+                    map.map[[x, y]] = EARTH;
+                    seenEarth = true;
+                } else if (Math.random() > 0.9) {
                     map.map[[x, y]] = STAR;
                     initialMap[[x, y]] = STAR;
                 } else {
@@ -69,7 +83,7 @@ function shiftBackground() {
         }
     }
 
-    setTimeout(shiftBackground, 150);
+    setTimeout(shiftBackground, 100);
 }
 
 // Keyboard controls
@@ -104,7 +118,7 @@ var map = {
                     continue;
                 }
 
-                if (y > map.y - 10) {
+                if (y > map.y - 5) {
                     continue;
                 }
 
@@ -120,7 +134,7 @@ var map = {
     },
 
     renderMap: function() {
-        if (jumpUp && astronaut.posY <= (playerBase - 8)) {
+        if (jumpUp && astronaut.posY <= (playerBase - 6)) {
             jumpUp = 0;
             resetJump = 1;
         } else if (resetJump && astronaut.posY >= playerBase) {
@@ -131,13 +145,12 @@ var map = {
         var playerX = astronaut.posX;
         var playerY = astronaut.posY;
 
-        astronaut.posY = astronaut.posY - jumpUp + resetJump;
+        astronaut.posY = astronaut.posY - (jumpReturn ? jumpUp: 0) + (jumpReturn ? resetJump : 0);
+        //astronaut.posY = astronaut.posY - jumpUp + resetJump;
+        jumpReturn = !jumpReturn;
 
-        if (map.map[[playerX, playerY]] == OBST) {
-            gameOver = 1;
-        }
+        gameOver = (map.map[[playerX, playerY]] == OBST || map.map[[playerX, astronaut.posY]] == OBST)
 
-        map.map[[25, 47]] = MOON;
         if (jumpUp || resetJump) {
             map.map[[playerX, playerY]] = initialMap[[playerX, playerY]];
         }
@@ -164,6 +177,10 @@ var map = {
                         cc.fillStyle = gameOver ? "red" : "white";
                         cc.fillText('@', x*scl + 5, y*scl + 10);
                         break;
+                    case EARTH:
+                        cc.fillStyle = gameOver ? "red" : "blue";
+                        cc.fillText('o', x*scl + 5, y*scl + 10);
+                        break;
                     case OBST:
                         if (gameOver) {
                             map.map[[x, y]] = VOID;
@@ -171,8 +188,10 @@ var map = {
                         }
                         cc.fillStyle = "red";
                         cc.fillText('n', x*scl + 5, y*scl + 10);
-                        map.map[[x - 1, y]] = map.map[[x, y]];
-                        map.map[[x, y]] = initialMap[[x, y]];
+                        if (x != -1) {
+                            map.map[[x - 1, y]] = map.map[[x, y]];
+                            map.map[[x, y]] = initialMap[[x, y]];
+                        }
                         break;
                 }
             }
@@ -219,7 +238,7 @@ function render() {
 }
 
 function addObstacle() {
-    for (var y = map.y - 4; y <= map.y - 2; y++) {
+    for (var y = map.y - (3 + Math.ceil(Math.random() * 2)); y <= map.y - 2; y++) {
         map.map[[map.x, y]] = OBST;
     }
 
