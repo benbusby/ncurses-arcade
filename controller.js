@@ -37,12 +37,23 @@ var jumpReturn = false;
 var seenEarth = false;
 var laserDelay = 15;
 
+// Scoreboard
+var currentScore = 0;
+var highScore = 0;
+
 var playerBase = 0;
 var astronaut = {posX: 0, posY: 0};
 
 // User input controls
 document.onkeydown = function (event) {
     if (event.keyCode == KEY_RESET) {
+        foreground.map = [[]];
+        background.map = [[]];
+        gameOver = 0;
+        currentScore = 0;
+        clearInterval(bgInterval);
+        clearInterval(renderInterval);
+        clearInterval(gameLoopInterval);
         init();
         return;
     }
@@ -65,6 +76,8 @@ window.onload = function() {
     bg2D = bgCan.getContext('2d');
 
     init();
+    shiftBackground();
+    addObstacle();
 };
 
 function init() {
@@ -72,13 +85,11 @@ function init() {
     gameOver = 0;
     astronaut.posX = 0;
     astronaut.posY = playerBase;
-    bgMap.initMap();
+    background.initMap();
     foreground.initMap();
     update();
     gameLoopInterval = setInterval(movePlayer, 50);
     renderInterval = setInterval(update, 50);
-    shiftBackground();
-    addObstacle();
 }
 
 function update() {
@@ -86,22 +97,32 @@ function update() {
         clearInterval(bgInterval);
         clearInterval(renderInterval);
         clearInterval(gameLoopInterval);
+
+        if (currentScore > highScore) {
+            highScore = currentScore;
+            document.getElementById("high-score").textContent = highScore;
+        }
         return;
     }
 
+    currentScore += 1;
+    document.getElementById("current-score").textContent = currentScore;
     render();
 }
 
 function render() {
     bg2D.fillStyle = 'black';
     bg2D.fillRect(0, 0, bgCan.width, bgCan.height)
-    clearInterval(bgInterval);
     fg2D.clearRect(0, 0, fgCan.width, fgCan.height);
     foreground.renderMap();
-    bgMap.renderMap();
+    background.renderMap();
 }
 
 function addObstacle() {
+    //if (gameOver) {
+        //return;
+    //}
+
     if (Math.random() > 0.5) {
         foreground.map[[foreground.x, Math.floor(foreground.y / 2)]] = ALIEN;
     } else {

@@ -11,3 +11,15 @@ html {
 canvas {
     position: fixed;
 }
+
+#scoreboard {
+    position: fixed;
+    background: black;
+    padding: 15px;
+}
+
+span {
+    color: white;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 15px;
+}

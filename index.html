@@ -10,8 +10,12 @@
 <body>
 	<canvas id="bg" width="640" height="360"></canvas>
 	<canvas id="fg" width="640" height="360"></canvas>
-    <code>Score: </code><span>0</span><br/>
-    <code>High Score: </code><span>0</span>
+    <div id="scoreboard">
+        <span>Score: </span>
+        <span id="current-score">0</span><br/>
+        <span>High Score: </span>
+        <span id="high-score">0</span>
+    </div>
     <script type="text/javascript" src="controller.js"></script>
     <script type="text/javascript" src="background.js"></script>
     <script type="text/javascript" src="foreground.js"></script>
