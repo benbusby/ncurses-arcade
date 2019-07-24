@@ -1,4 +1,4 @@
-#gc {
+#fg, #bg {
 	margin: auto;
 	padding: 0;
 	display: block;
@@ -6,4 +6,8 @@
 
 html {
 	background-color: rgb(99, 99, 99);
+}
+
+canvas {
+    position: fixed;
 }
