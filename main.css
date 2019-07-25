@@ -20,6 +20,6 @@ canvas {
 
 span {
     color: white;
-    font-family: "Lucida Console", Monaco, monospace;
+    font-family: monospace;
     font-size: 15px;
 }

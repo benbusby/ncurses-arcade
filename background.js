@@ -1,14 +1,11 @@
 function shiftBackground() {
-    //if (gameOver) {
-        //return;
-    //}
     for (var x = 0; x <= background.x; x++) {
         for (var y = 0; y <= background.y - 2; y++) {
             if (x == background.x) {
-                if (!seenEarth && Math.random() > 0.99 && y < background.y - 10) {
+                if (!seenEarth && Math.random() > 0.999 && y < background.y - 10) {
                     background.map[[x, y]] = EARTH;
                     seenEarth = true;
-                } else if (Math.random() > 0.9) {
+                } else if (Math.random() > 0.95) {
                     background.map[[x, y]] = STAR;
                 } else {
                     background.map[[x, y]] = VOID;
@@ -28,9 +25,10 @@ var background = {
     map: [[]],
 
     initMap: function() {
+        bg2D.font = "15px monospace";
         for (var x = 0; x <= background.x; x++) {
             for (var y = 0; y <= background.y - 2; y++) {
-                if (Math.random() > 0.9) {
+                if (Math.random() > 0.95) {
                     background.map[[x, y]] = STAR;
                 } else {
                     background.map[[x, y]] = VOID;
@@ -40,7 +38,6 @@ var background = {
     },
 
     renderMap: function() {
-        bg2D.font = "15px Lucida Console, Monaco, monospace";
         for (var x = 0; x <= background.x; x++) {
             for (var y = 0; y <= background.y; y++) {
                 switch (background.map[[x, y]]) {
@@ -49,7 +46,7 @@ var background = {
                         bg2D.fillText(' ', x*scl + 5, y*scl + 10);
                         break;
                     case STAR:
-                        bg2D.fillStyle = gameOver ? "red" : "#dddddd";
+                        bg2D.fillStyle = gameOver ? "red" : "#ccccaa";
                         bg2D.fillText(Math.random() > 0.9 ? '*' : '.', x*scl + 5, y*scl + 10);
                         break;
                     case EARTH:

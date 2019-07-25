@@ -102,7 +102,7 @@ var foreground = {
                         }
 
                         movedLaser = true;
-                        fg2D.fillStyle = "cyan";
+                        fg2D.fillStyle = "#FF00FF";
                         fg2D.fillText('|', x*scl + 5, y*scl + 10);
                         if (y != foreground.y - 2) {
                             foreground.map[[x, y + 1]] = foreground.map[[x, y]];

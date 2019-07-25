@@ -50,6 +50,7 @@ document.onkeydown = function (event) {
         foreground.map = [[]];
         background.map = [[]];
         gameOver = 0;
+        jumpUp = 0;
         currentScore = 0;
         clearInterval(bgInterval);
         clearInterval(renderInterval);
