@@ -1,59 +1,12 @@
-function movePlayer() {
-    if (keyState[MOVE_RIGHT] || keyState[MOVE_LEFT]) {
-        var origX = astronaut.posX;
-        var origY = astronaut.posY;
-
-        astronaut.posX += (keyState[MOVE_RIGHT] && astronaut.posX < foreground.x) ? 1 : 0;
-        astronaut.posX -= (keyState[MOVE_LEFT] && astronaut.posX > 0) ? 1 : 0;
-        if (foreground.map[[origX, origY]] != OBST) {
-            foreground.map[[origX, origY]] = VOID;
-        } else {
-            foreground.map[[astronaut.posX, origY]] = OBST;
-        }
-    }
-
-    if (keyState[MOVE_UP] && astronaut.posY == playerBase && canJump) {
-        jumpUp = 1;
-        canJump = false;
-    }
-}
-
-function calculateJump() {
-    if (jumpUp && astronaut.posY <= (playerBase - 6)) {
-        jumpUp = 0;
-        resetJump = 1;
-    } else if (resetJump && astronaut.posY >= playerBase) {
-        astronaut.posY = playerBase;
-        resetJump = 0;
-    }
-
-    var playerX = astronaut.posX;
-    var playerY = astronaut.posY;
-
-    laserDelay -= 1;
-    if (laserDelay == 0) {
-        laserDelay = 5;
-    }
-
-    gameOver = (foreground.map[[playerX, playerY]] == OBST) || (foreground.map[[playerX, playerY]] == LASER);
-
-    astronaut.posY = astronaut.posY - (jumpReturn ? jumpUp: 0) + (jumpReturn ? resetJump : 0);
-    jumpReturn = !jumpReturn;
-
-    if (!gameOver) {
-        gameOver = (foreground.map[[playerX, astronaut.posY]] == OBST) ||
-            (foreground.map[[playerX, astronaut.posY]] == LASER);
-    }
-
-    foreground.map[[playerX, playerY]] = VOID;
-    foreground.map[[astronaut.posX, astronaut.posY]] = PLYR;
-}
-
+// Primary foreground object -- handles drawing of
+// the player, obstacles, and the moon's surface
 var foreground = {
     x: Math.floor(640/scl),
     y: Math.floor(360/scl) - 1,
     map: [[]],
 
+    // Initializes the map with the moon's surface in the bottom
+    // two rows
     initMap: function() {
         fg2D.font = "15px Lucida Console, Monaco, monospace";
         for (var x = 0; x <= foreground.x; x++) {
@@ -68,8 +21,17 @@ var foreground = {
         }
     },
 
+    // Renders the foreground objects
     renderMap: function() {
+        // Check where the player should be in the foreground
+        // if jumping
         calculateJump();
+
+        // Modify delay between lasers
+        laserDelay -= 1;
+        if (laserDelay == 0) {
+            laserDelay = 5;
+        }
 
         for (var x = 0; x <= foreground.x; x++) {
             var movedLaser = false;

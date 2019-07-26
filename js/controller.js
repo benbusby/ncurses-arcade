@@ -6,46 +6,48 @@ var bgCan;
 var scl = 15;
 
 // ASCII Draw Codes
-const EARTH = -2;
-const VOID = -1;
-const STAR = 0;
-const PLYR = 1;
-const MOON = 2;
-const OBST = 3;
-const ALIEN = 4;
-const LASER = 5;
+var EARTH = -2;
+var VOID = -1;
+var STAR = 0;
+var PLYR = 1;
+var MOON = 2;
+var OBST = 3;
+var ALIEN = 4;
+var LASER = 5;
 
 // Movement Keycodes
-const keyState = {};
-const MOVE_LEFT = 37;
-const MOVE_UP = 38;
-const MOVE_RIGHT = 39;
-const MOVE_DOWN = 40;
-const KEY_RESET = 82;
+var keyState = {};
+var MOVE_LEFT = 37;
+var MOVE_UP = 38;
+var MOVE_RIGHT = 39;
+var MOVE_DOWN = 40;
+var KEY_RESET = 82;
 
 // Game state tracking
 var lastKeyCode = 0;
 var gameOver = 0;
-var jumpUp = 0;
-var resetJump = 0;
 var bgInterval;
+var seenEarth = false;
+var canStart = false;
+
+// Delay between lasers fired by the alien ships
+var laserDelay = 15;
+
+// Game object creation and rendering intervals
 var gameLoopInterval;
 var renderInterval;
 var obstacleInterval;
-var canJump = true;
-var jumpReturn = false;
-var seenEarth = false;
-var laserDelay = 15;
 
-// Scoreboard
-var currentScore = 0;
-var highScore = 0;
-
-var playerBase = 0;
-var astronaut = {posX: 0, posY: 0};
 
 // User input controls
 document.onkeydown = function (event) {
+    if (canStart) {
+        canStart = false;
+        startGame();
+        playScoreSound();
+        return;
+    }
+
     if (event.keyCode == KEY_RESET) {
         foreground.map = [[]];
         background.map = [[]];
@@ -70,6 +72,10 @@ document.onkeyup = function (event) {
 }
 
 window.onload = function() {
+    canStart = true;
+};
+
+function startGame() {
     fgCan = document.getElementById('fg');
     fg2D = fgCan.getContext('2d');
 
@@ -77,9 +83,10 @@ window.onload = function() {
     bg2D = bgCan.getContext('2d');
 
     init();
+    initAudio();
     shiftBackground();
     addObstacle();
-};
+}
 
 function init() {
     playerBase = foreground.y - 2;
@@ -88,6 +95,7 @@ function init() {
     astronaut.posY = playerBase;
     background.initMap();
     foreground.initMap();
+    console.log(background.x);
     update();
     gameLoopInterval = setInterval(movePlayer, 50);
     renderInterval = setInterval(update, 50);
@@ -95,19 +103,15 @@ function init() {
 
 function update() {
     if (gameOver) {
+        playGameOver();
         clearInterval(bgInterval);
         clearInterval(renderInterval);
         clearInterval(gameLoopInterval);
-
-        if (currentScore > highScore) {
-            highScore = currentScore;
-            document.getElementById("high-score").textContent = highScore;
-        }
+        finalizeScore();
         return;
     }
 
-    currentScore += 1;
-    document.getElementById("current-score").textContent = currentScore;
+    updateScore();
     render();
 }
 
@@ -120,10 +124,6 @@ function render() {
 }
 
 function addObstacle() {
-    //if (gameOver) {
-        //return;
-    //}
-
     if (Math.random() > 0.5) {
         foreground.map[[foreground.x, Math.floor(foreground.y / 2)]] = ALIEN;
     } else {

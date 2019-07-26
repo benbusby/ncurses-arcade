@@ -4,12 +4,22 @@
 	display: block;
 }
 
+#splash {
+    position: fixed;
+	color: white;
+	font-family: monospace;
+	width: 640px;
+	text-align: center;
+	margin-top: 180px;
+}
+
 html {
-	background-color: rgb(99, 99, 99);
+	background-color: black;
 }
 
 canvas {
     position: fixed;
+    border: 1px white;
 }
 
 #scoreboard {
