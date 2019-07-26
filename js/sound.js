@@ -1,61 +1,49 @@
 var context;
-var isChrome = 0;
 
 function initAudio() {
     context = new AudioContext();
-    isChrome = window.chrome ? 1 : 0;
 }
 
 /**
- * Plays a note using the built in AudioContext api.
+ * Plays any sequence of notes using the built in AudioContext api.
  */
-function play(wave, duration, frequency, time, gain, size) {
-    var ctxOsc = context.createOscillator();
-    var ctxGain = context.createGain();
-    ctxOsc.connect(ctxGain);
-    ctxOsc.type = wave;
-    ctxGain.connect(context.destination);
+function play(notes, duration, gain) {
+    var osc = context.createOscillator();
 
-    if (gain) {
-        ctxGain.gain.value = gain;
-    }
-
-    ctxOsc.frequency.value = frequency;
-
-    // Play the note for a specific length of time
-    if (!isChrome) {
-        ctxGain.gain.exponentialRampToValueAtTime(
-            0.00001, context.currentTime +
-            duration +
-            (time + (isChrome * size))
+    // Change oscillator frequency to change after a specified duration
+    osc.frequency.value = notes[0];
+    for (var i = 1; i < notes.length; i++) {
+        osc.frequency.setValueAtTime(
+            notes[i],
+            context.currentTime + (i * duration)
         );
-
-        // Modify start time of note in order to play sequences
-        ctxOsc.start(context.currentTime + time);
-    } else {
-        ctxOsc.start(context.currentTime + time);
-        setTimeout(function() {
-            ctxOsc.stop();
-        }, 150 * (size > 1 ? size : 0.25));
     }
-}
 
-function playSequence(notes) {
-    var duration = 0.1;
-    for (var i = 0; i < notes.length; i++) {
-        play("sine", duration, notes[i], i * duration, 0.25, notes.length);
-    }
+    osc.start();
+
+    // Create gain node to connect the oscillator to. This is used to ramp
+    // down volume and avoid the clicking noise at the end of each note
+    var ctxGain = context.createGain();
+    ctxGain.gain.value = gain;
+    ctxGain.connect(context.destination);
+    osc.connect(ctxGain);
+
+    // Calculate total time (# of notes * duration) and ensure the sequence
+    // is stopped properly
+    var totalTime = context.currentTime + (notes.length * duration);
+    ctxGain.gain.setTargetAtTime(0, totalTime, 0.015);
+    osc.stop(totalTime + 0.015);
 }
 
 function playScoreSound() {
-    playSequence([440.0, 554.4, 659.3, 880.0]);
+    play([440.0, 554.4, 659.3, 880.0], 0.1, 0.5);
 }
 
 function playJumpSound() {
-    play("sine", 0.05, 880.0, 0, 0.5, 1);
+    play([880.0], 0.05, 0.5);
 }
 
 function playGameOver() {
-    playSequence([880.0, 659.3, 523.3, 415.3]);
+    play([880.0, 659.3, 523.3, 415.3], 0.1, 0.5);
 }
 

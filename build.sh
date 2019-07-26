@@ -13,7 +13,7 @@ cp index.html index.html.tmp
 while read -r line
 do
     [[ ! $line =~ "</script>" ]] && echo "$line"
-    [[ ! $line =~ "stylesheet" ]] && echo "$MIN_CSS"
+    [[ $line =~ "main.css" ]] && echo "$MIN_CSS"
     [[ $line =~ "</body>" ]] && echo "$MIN_SCRIPT" && echo "$line"
 done < index.html.tmp > output/index.html
 rm -f index.html.tmp
