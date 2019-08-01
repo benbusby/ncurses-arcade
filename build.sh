@@ -3,6 +3,16 @@
 rm -rf output/
 mkdir -p output
 
+# Set up ordered javascript classes for minifying
+declare -a ORDERED_JS=(
+    "controller"
+    "player"
+    "background"
+    "foreground"
+    "sound"
+    "scoreboard"
+)
+
 # Set up single line imports of the minified js/css
 MIN_SCRIPT='<script type="text/javascript" src="x.js"></script>'
 MIN_CSS='<link rel="stylesheet" href="main.css">'
@@ -25,13 +35,16 @@ yuicompressor ./css/main.css -o output/main.css
 # Add all javascript to a single file for minifying
 rm -f x.js
 rm -f output/x.js
-cat ./js/controller.js >> x.js
-cat ./js/player.js >> x.js
-cat ./js/background.js >> x.js
-cat ./js/foreground.js >> x.js
-cat ./js/sound.js >> x.js
-cat ./js/scoreboard.js >> x.js
+
+for i in "${ORDERED_JS[@]}"
+do
+   cat ./js/$i.js >> x.js
+done
 
 # Minify and mangle the javascript file
 uglifyjs --mangle toplevel,eval --compress --mangle-props -- x.js > output/x.js
 rm -f x.js
+
+# Zip final game
+rm -f game.zip
+zip -j game.zip ./output/*
