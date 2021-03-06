@@ -5,13 +5,11 @@ The theme of the game jam was to create a simple game that took up less than 32 
 
 The visuals in the game are accomplished using a 2D matrix of characters that are updated on a regular interval to achieve a constant "framerate", with the characters moved between rows and colums of the matrix to simulate motion:
 
-### Command Line (ncurses)
+### Command Line
 Screenshot coming soon
 
 ### [Web](https://github.com/benbusby/tiny-moon-runner/tree/web)
-<p align="center">
-  <img src="./img/demo.gif">
-</p>
+![web-gif](./img/demo.gif)
 
 ## Running the Game
 To play the game, you can do one of the following:
@@ -27,7 +25,7 @@ To play the game, you can do one of the following:
     ```
     git clone https://github.com/benbusby/tiny-moon-runner.git
     cd tiny-moon-runner
-    make
-    ./tiny-moon-runner
+    git checkout web
+    open index.html
     ```
 Or play the game in your browser on [Itch.io](https://benbusby.itch.io/tiny-moon-runner)
