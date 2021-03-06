@@ -1,2 +1,2 @@
-output/
-uglifyjs
+*.o
+tiny-moon-runner
