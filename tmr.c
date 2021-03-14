@@ -88,7 +88,7 @@ void *game_thread() {
         }
 
         /* Spawn enemies randomly, but not too frequently */
-        if (!(rand() % MAGIC_NUMBER) && 
+        if (!(rand() % MAGIC_NUMBER) &&
             ((double) clock() - (double) last_spawn) > ENEMY_WAIT) {
             spawn_enemy();
         }
@@ -96,26 +96,26 @@ void *game_thread() {
         for (x = 0; x < COLS; x++) {
             for (y = LINES - MOON_START; y >= 0; y--) {
                 int nextch = mvinch(y, x);
-                if (nextch == CHARACTER) {
+                if ((nextch & A_CHARTEXT) == PLAYER) {
                     character_x = x;
                     character_y = y;
                 } else {
-                    if (mvinch(y, x - 1) == CHARACTER) {
+                    if ((mvinch(y, x - 1) & A_CHARTEXT) == PLAYER) {
                         /* Check if player has hit an obstacle */
-                        if (nextch == OBST) {
+                        if ((nextch & A_CHARTEXT) == OBST) {
                             quit_game = 1;
                             died = 1;
                         }
-                        mvaddch(y, x - 2, nextch);
+                        move_char(y, x - 2, nextch);
                     } else {
-                        mvaddch(y, x - 1, nextch);
+                        move_char(y, x - 1, nextch);
                     }
 
                     if (x - 1 <= 0) {
-                        if (nextch == STAR || nextch == SPACE) {
-                            mvaddch(y, COLS - 1, nextch);
+                        if ((nextch & A_CHARTEXT) == STAR || (nextch & A_CHARTEXT) == SPACE) {
+                            move_char(y, COLS - 1, nextch);
                         } else {
-                            mvaddch(y, x, SPACE);
+                            move_char(y, x, SPACE);
                         }
                     }
                 }
@@ -126,25 +126,25 @@ void *game_thread() {
          * if > 0, the player is jumping, otherwise they are either
          * descending or are still. */
         if (jump > 0) {
-            /* A regular increment would be too fast. Here we slow 
+            /* A regular increment would be too fast. Here we slow
              * it down by restricting movement to every 5 "frames". */
             if (!(jump % 5)) {
-                mvaddch(character_y - 1, character_x, CHARACTER);
-                mvaddch(character_y, character_x, SPACE);
+                move_char(character_y - 1, character_x, PLAYER);
+                move_char(character_y, character_x, SPACE);
             }
             jump--;
         }
 
         /* Check if player character needs to begin descending */
-        if (jump <= 0 && character_y < CHARACTER_START_Y) {
+        if (jump <= 0 && character_y < PLAYER_START_Y) {
             /* Same logic as before, but for the opposite direction */
             if (!(jump % 5)) {
-                mvaddch(character_y + 1, character_x, CHARACTER);
-                mvaddch(character_y, character_x, SPACE);
+                move_char(character_y + 1, character_x, PLAYER);
+                move_char(character_y, character_x, SPACE);
             }
 
             jump--;
-        } else if (jump <= 0 && character_y == CHARACTER_START_Y) {
+        } else if (jump <= 0 && character_y == PLAYER_START_Y) {
             jump = 0;
         }
 
@@ -186,6 +186,28 @@ void *user_thread() {
     return NULL;
 }
 
+/**
+ * move_char() - Move a character to a new position
+ * @y: New y pos
+ * @x: New x pos
+ * @ch: The character to move
+ *
+ * This basically overloads mvaddch, but with the added step of setting and
+ * unsetting the appropriate color per character every time.
+ */
+void move_char(int y, int x, int ch) {
+    /* TODO: Finish + clean this up */
+    int cpair = SPACE_PAIR;
+    if (ch == OBST) {
+        cpair = OBST_PAIR;
+    } else if (ch == PLAYER) {
+        cpair = PLAYER_PAIR;
+    }
+    attron(COLOR_PAIR(cpair));
+    mvaddch(y, x, ch);
+    attroff(COLOR_PAIR(cpair));
+}
+
 /** update_score() - Increments global score counter and updates high score */
 void update_score() {
     /* Add score (and high score if applicable) */
@@ -201,10 +223,10 @@ void update_score() {
 
 /** spawn_enemy() - Creates a new (temporary) enemy/obstacle */
 void spawn_enemy() {
-    mvaddch(LINES - MOON_START, COLS - 2, OBST);
-    mvaddch(LINES - MOON_START - 1, COLS - 2, OBST);
+    move_char(LINES - MOON_START, COLS - 2, OBST);
+    move_char(LINES - MOON_START - 1, COLS - 2, OBST);
     if (rand() & 1) {
-        mvaddch(LINES - MOON_START - 2, COLS - 2, OBST);
+        move_char(LINES - MOON_START - 2, COLS - 2, OBST);
     }
 
     last_spawn = clock();
@@ -220,14 +242,14 @@ void init_map() {
     clear_map();
 
     for (x = 0; x < LINES; x++) {
-        mvaddch(x, random_col(), STAR);
+        move_char(x, random_col(), STAR);
     }
 
     for (y = LINES; y > LINES - MOON_START; y--) {
         mvhline(y, 0, MOON, COLS);
     }
 
-    mvaddch(LINES - MOON_START, CHARACTER_START_X, CHARACTER);
+    move_char(LINES - MOON_START, PLAYER_START_X, PLAYER);
 
     update_score();
 

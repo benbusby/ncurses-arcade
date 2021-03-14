@@ -12,6 +12,10 @@
 #define OBST 'X'
 #define COIN 'C'
 
+#define SPACE_PAIR     1
+#define OBST_PAIR      2
+#define PLAYER_PAIR    3
+
 #define JUMP_COUNTER 20
 
 #define MAGIC_NUMBER 17
@@ -19,9 +23,9 @@
 
 #define HIGH_SCORE_STR "High Score: %d"
 
-#define CHARACTER '@'
-#define CHARACTER_START_X 20
-#define CHARACTER_START_Y LINES - MOON_START
+#define PLAYER '@'
+#define PLAYER_START_X 20
+#define PLAYER_START_Y LINES - MOON_START
 
 extern int score, high_score;
 extern int jump;
@@ -34,6 +38,7 @@ int check_input(int ignore);
 int random_col();
 int random_line();
 
+void move_char(int y, int x, int ch);
 void spawn_enemy();
 void clear_map();
 void update_score();

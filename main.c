@@ -11,6 +11,12 @@ int main(void) {
     noecho();
     nodelay(stdscr, TRUE);
 
+    /* Initialize colors */
+    start_color();
+    init_pair(SPACE_PAIR, COLOR_WHITE, COLOR_BLACK);
+    init_pair(OBST_PAIR, COLOR_RED, COLOR_BLACK);
+    init_pair(PLAYER_PAIR, COLOR_GREEN, COLOR_BLACK);
+
     reset_game();
 
     /* User interaction should be handled separately from
@@ -22,10 +28,10 @@ int main(void) {
     pthread_join(threads[1], NULL);
 
     /* Joining the game thread here is not strictly necessary,
-     * but allows the program to wait for the thread to 
+     * but allows the program to wait for the thread to
      * stop and won't be reported as a memory leak. */
     pthread_join(threads[0], NULL);
-    
+
     /* If we're here, the user is leaving the game */
     endwin();
 
