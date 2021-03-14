@@ -1,29 +1,34 @@
 #include <ncurses.h>
 
+/* Game pieces */
+#define SPACE  ' '
+#define MOON   '#'
+#define STAR   '*'
+#define EARTH  'O'
+#define ALIEN  'V'
+#define OBST   'X'
+#define COIN   'C'
+#define PLAYER '@'
+
+/* Ncurses color pairs */
+#define SPACE_PAIR  1
+#define OBST_PAIR   2
+#define EARTH_PAIR  3
+#define PLAYER_PAIR 4
+
+/* Game state values */
 #define SCROLL_SPEED 25000
-
-#define SPACE ' '
-#define MOON '#'
-#define MOON_START 5
-
-#define STAR '*'
-#define EARTH 'o'
-#define ALIEN 'V'
-#define OBST 'X'
-#define COIN 'C'
-
-#define SPACE_PAIR     1
-#define OBST_PAIR      2
-#define PLAYER_PAIR    3
-
 #define JUMP_COUNTER 20
-
 #define MAGIC_NUMBER 17
-#define ENEMY_WAIT 1000000
+#define ENEMY_WAIT   1000000
 
+/* UI */
 #define HIGH_SCORE_STR "High Score: %d"
 
-#define PLAYER '@'
+/* Position values */
+#define EARTH_START_X COLS / 2
+#define EARTH_START_Y LINES / 2
+#define MOON_START 5
 #define PLAYER_START_X 20
 #define PLAYER_START_Y LINES - MOON_START
 

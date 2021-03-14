@@ -112,10 +112,10 @@ void *game_thread() {
                     }
 
                     if (x - 1 <= 0) {
-                        if ((nextch & A_CHARTEXT) == STAR || (nextch & A_CHARTEXT) == SPACE) {
-                            move_char(y, COLS - 1, nextch);
-                        } else {
+                        if ((nextch & A_CHARTEXT) == OBST) {
                             move_char(y, x, SPACE);
+                        } else {
+                            move_char(y, COLS - 1, nextch);
                         }
                     }
                 }
@@ -202,6 +202,8 @@ void move_char(int y, int x, int ch) {
         cpair = OBST_PAIR;
     } else if (ch == PLAYER) {
         cpair = PLAYER_PAIR;
+    } else if (ch == EARTH) {
+        cpair = EARTH_PAIR;
     }
     attron(COLOR_PAIR(cpair));
     mvaddch(y, x, ch);
@@ -249,10 +251,9 @@ void init_map() {
         mvhline(y, 0, MOON, COLS);
     }
 
+    move_char(EARTH_START_Y, EARTH_START_X, EARTH);
     move_char(LINES - MOON_START, PLAYER_START_X, PLAYER);
-
     update_score();
-
     spawn_enemy();
 }
 

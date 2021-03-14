@@ -15,6 +15,7 @@ int main(void) {
     start_color();
     init_pair(SPACE_PAIR, COLOR_WHITE, COLOR_BLACK);
     init_pair(OBST_PAIR, COLOR_RED, COLOR_BLACK);
+    init_pair(EARTH_PAIR, COLOR_BLUE, COLOR_BLACK);
     init_pair(PLAYER_PAIR, COLOR_GREEN, COLOR_BLACK);
 
     reset_game();
