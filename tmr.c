@@ -13,7 +13,6 @@ clock_t last_spawn = 0;
 
 /**
  * check_input() - Check if user has pressed a key
- * @reset: Flag to reset the specific character for consuming elsewhere
  *
  * check_input can be used to prompt a user for general confirmation (seen
  * in the main menu) or for parsing game commands (<space> for jump, 'p' for
@@ -21,13 +20,11 @@ clock_t last_spawn = 0;
  *
  * Return: 0/1 representing state of user input
  */
-int check_input(int reset) {
+int check_input() {
     int ch = getch();
 
     if (ch != ERR) {
-        if (reset) {
-            ungetch(ch);
-        }
+        ungetch(ch);
         return 1;
     } else {
         return 0;
@@ -42,7 +39,14 @@ int check_input(int reset) {
 void reset_game() {
     clear_map();
 
+    int cpair = died ? OBST_PAIR : SPACE_PAIR;
+    attron(COLOR_PAIR(cpair));
+
     score = 0, jump = 0;
+    if (died) {
+        died = 0;
+        mvaddstr(LINES / 2 - 7, COLS / 2 - 5, "You died!");
+    }
 
     mvaddstr(LINES / 2 - 5, COLS / 2 - 6, "Moon Runner");
     mvaddstr(LINES / 2 - 4, COLS / 2 - 8, "<Space> to jump");
@@ -59,12 +63,19 @@ void reset_game() {
         mvaddstr(LINES / 2, COLS / 2 - (buf_size / 2), score_str);
     }
 
+    attroff(COLOR_PAIR(cpair));
+
     while (!quit_game) {
         /* Wait for user input to start game */
-        if (check_input(0)) {
-            paused = 0;
-            init_map();
-            break;
+        if (check_input()) {
+            int res = getch();
+            if (res != 'q') {
+                paused = 0;
+                init_map();
+                break;
+            }
+
+            quit_game = 1;
         }
     }
 }
@@ -78,7 +89,7 @@ void reset_game() {
  * The thread also handles enemy spawning, character movement, and scoring.
  */
 void *game_thread() {
-    while (!quit_game) {
+    GAME_LOOP:while (!quit_game) {
         int x, y;
         int character_x, character_y;
         usleep(SCROLL_SPEED);
@@ -103,8 +114,9 @@ void *game_thread() {
                     if ((mvinch(y, x - 1) & A_CHARTEXT) == PLAYER) {
                         /* Check if player has hit an obstacle */
                         if ((nextch & A_CHARTEXT) == OBST) {
-                            quit_game = 1;
                             died = 1;
+                            paused = 1;
+                            goto GAME_LOOP;
                         }
                         move_char(y, x - 2, nextch);
                     } else {
@@ -161,8 +173,9 @@ void *game_thread() {
  */
 void *user_thread() {
     while (!quit_game) {
-        if (check_input(1)) {
-            switch (getch()) {
+        if (check_input() && !died) {
+            int res = getch();
+            switch (res) {
                 case ' ':
                     jump = jump == 0 ? JUMP_COUNTER : jump;
                     break;
@@ -173,13 +186,17 @@ void *user_thread() {
                     if (paused) {
                         reset_game();
                     }
+                    break;
                 case 'q':
                     quit_game = 1;
                     break;
                 default:
+                    printf("%d\n", res);
                     break;
             }
             refresh();
+        } else if (died) {
+            reset_game();
         }
     }
 

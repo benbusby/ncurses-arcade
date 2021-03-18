@@ -39,7 +39,7 @@ extern int quit_game;
 extern int died;
 extern clock_t last_spawn;
 
-int check_input(int ignore);
+int check_input();
 int random_col();
 int random_line();
 

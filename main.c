@@ -36,10 +36,6 @@ int main(void) {
     /* If we're here, the user is leaving the game */
     endwin();
 
-    if (died) {
-        printf("\nYou lost!");
-    }
-
     printf("\nHigh score: %d\n\n", high_score);
     return 0;
 }
