@@ -39,13 +39,14 @@ int check_input() {
 void reset_game() {
     clear_map();
 
-    int cpair = died ? OBST_PAIR : SPACE_PAIR;
-    attron(COLOR_PAIR(cpair));
-
     score = 0, jump = 0;
     if (died) {
+        attron(COLOR_PAIR(OBST_PAIR));
         died = 0;
-        mvaddstr(LINES / 2 - 7, COLS / 2 - 5, "You died!");
+        mvaddstr(LINES / 2 - 9, COLS / 2 - 7, "*************");
+        mvaddstr(LINES / 2 - 8, COLS / 2 - 5, "You died!");
+        mvaddstr(LINES / 2 - 7, COLS / 2 - 7, "*************");
+        attroff(COLOR_PAIR(OBST_PAIR));
     }
 
     mvaddstr(LINES / 2 - 5, COLS / 2 - 6, "Moon Runner");
@@ -62,8 +63,6 @@ void reset_game() {
         snprintf(score_str, buf_size + 1, HIGH_SCORE_STR, high_score);
         mvaddstr(LINES / 2, COLS / 2 - (buf_size / 2), score_str);
     }
-
-    attroff(COLOR_PAIR(cpair));
 
     while (!quit_game) {
         /* Wait for user input to start game */

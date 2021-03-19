@@ -10,6 +10,7 @@ int main(void) {
     cbreak();
     noecho();
     nodelay(stdscr, TRUE);
+    curs_set(0);
 
     /* Initialize colors */
     start_color();
