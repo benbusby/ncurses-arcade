@@ -1,15 +1,13 @@
 CC=gcc
-CFLAGS=-O3 -pthread -I.
-LDFLAGS=-lncurses
-DEPS=tmr.h
-OBJ=tmr.o main.o
-OUT=tiny-moon-runner
+CFLAGS=-Isrc/engine -Isrc/tmr
+LDFLAGS=-lncurses -lpthread
+SOURCES=$(shell find src -type f -iname '*.c')
+OBJECTS=$(foreach file, $(basename $(SOURCES)), $(file).o)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $< -c -o $@
+TARGET=ncurses-arcade
 
-tmr: $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $(OUT) $(LDFLAGS)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $^ main.c -o $@ $(LDFLAGS)
 
 clean:
-	rm -f *.o
+	rm -f $(TARGET) $(OBJECTS)

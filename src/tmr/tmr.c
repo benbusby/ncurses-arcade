@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include "engine.h"
 #include "tmr.h"
 
 int score = 0, high_score = 0;
@@ -11,32 +12,12 @@ int quit_game = 0;
 int died = 0;
 clock_t last_spawn = 0;
 
-/**
- * check_input() - Check if user has pressed a key
- *
- * check_input can be used to prompt a user for general confirmation (seen
- * in the main menu) or for parsing game commands (<space> for jump, 'p' for
- * pause, etc).
- *
- * Return: 0/1 representing state of user input
- */
-int check_input() {
-    int ch = getch();
-
-    if (ch != ERR) {
-        ungetch(ch);
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-/** reset_game() - Resets the game to a non-playable state
+/** reset_tmr() - Resets the game to a non-playable state
  *
  * This is called on every new game, and can additionally be used to restart
  * the game upon death, or if the player wants to pause and restart.
  */
-void reset_game() {
+void reset_tmr() {
     clear_map();
 
     score = 0, jump = 0;
@@ -79,7 +60,7 @@ void reset_game() {
     }
 }
 
-/** game_thread() - Handle all game state changes
+/** tmr_game_thread() - Handle all game state changes
  *
  * The game thread loop handles movement of all characters on the screen. Stars
  * are looped once they leave the player's screen, but all other characters are
@@ -87,7 +68,7 @@ void reset_game() {
  *
  * The thread also handles enemy spawning, character movement, and scoring.
  */
-void *game_thread() {
+void *tmr_game_thread() {
     GAME_LOOP:while (!quit_game) {
         int x, y;
         int character_x, character_y;
@@ -165,12 +146,12 @@ void *game_thread() {
     return NULL;
 }
 
-/** user_thread() - Handle all user input
+/** tmr_user_thread() - Handle all user input
  *
  * User input for jumping, pausing, etc is handled in this loop. Each input
  * modifies the global game state, with changes handled in the game thread.
  */
-void *user_thread() {
+void *tmr_user_thread() {
     while (!quit_game) {
         if (check_input() && !died) {
             int res = getch();
@@ -183,7 +164,7 @@ void *user_thread() {
                     break;
                 case 'r':
                     if (paused) {
-                        reset_game();
+                        reset_tmr();
                     }
                     break;
                 case 'q':
@@ -195,7 +176,7 @@ void *user_thread() {
             }
             refresh();
         } else if (died) {
-            reset_game();
+            reset_tmr();
         }
     }
 
@@ -273,20 +254,15 @@ void init_map() {
     spawn_enemy();
 }
 
-/** clear_map() - Resets all x/y coords in the grid to the empty SPACE char */
-void clear_map() {
-    int i;
-    for (i = 0; i < LINES; i++) {
-        mvhline(i, 0, SPACE, COLS);
-    }
-}
+/** init_tmr() - Initializes the game to a playable state */
+void init_tmr() {
+    quit_game = 0;
 
-/** random_col() - Returns a random col between 0 and max columns */
-int random_col() {
-    return (rand() % (COLS - 1));
-}
+    /* Initialize all colors used in the game */
+    init_pair(SPACE_PAIR, COLOR_WHITE, COLOR_BLACK);
+    init_pair(OBST_PAIR, COLOR_RED, COLOR_BLACK);
+    init_pair(EARTH_PAIR, COLOR_BLUE, COLOR_BLACK);
+    init_pair(PLAYER_PAIR, COLOR_GREEN, COLOR_BLACK);
 
-/** random_line() - Returns a random line between 0 and max lines */
-int random_line() {
-    return (rand() % (LINES - MOON_START - 1));
+    reset_tmr();
 }

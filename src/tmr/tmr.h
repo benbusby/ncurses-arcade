@@ -39,7 +39,6 @@ extern int quit_game;
 extern int died;
 extern clock_t last_spawn;
 
-int check_input();
 int random_col();
 int random_line();
 
@@ -48,7 +47,8 @@ void spawn_enemy();
 void clear_map();
 void update_score();
 void init_map();
-void reset_game();
+void init_tmr();
+void reset_tmr();
 
-void *game_thread();
-void *user_thread();
+void *tmr_game_thread();
+void *tmr_user_thread();
