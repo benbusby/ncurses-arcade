@@ -170,9 +170,9 @@ void *tmr_user_thread() {
                 case 'q':
                     quit_game = 1;
                     break;
-                default:
-                    printf("%d\n", res);
-                    break;
+                /*default:*/
+                    /*printf("%d\n", res);*/
+                    /*break;*/
             }
             refresh();
         } else if (died) {
